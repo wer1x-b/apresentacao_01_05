@@ -34,7 +34,7 @@
         "\n",
         "A análise da taxa de mortalidade materna por grupos etários é fundamental para entender quais faixas etárias estão mais vulneráveis e para direcionar intervenções específicas. A seguir, apresentamos um gráfico interativo que mostra a evolução dos óbitos de mulheres em idade fértil (MIF) ao longo dos meses e anos, segmentados por grupos etários."
       ],
-      "id": "bb4d7b1b"
+      "id": "ec19b5e4"
     },
     {
       "cell_type": "code",
@@ -133,7 +133,7 @@
         "# Exibe o gráfico no seu arquivo HTML final\n",
         "fig.show()"
       ],
-      "id": "dbb9ed5f",
+      "id": "dd58a45e",
       "execution_count": null,
       "outputs": []
     },
@@ -150,7 +150,7 @@
         "\n",
         "A seguir, apresentamos um mapa interativo que mostra a distribuição geográfica do volume de mortalidade materna por estado."
       ],
-      "id": "1a7d631b"
+      "id": "7affe86f"
     },
     {
       "cell_type": "code",
@@ -234,7 +234,7 @@
         "# Exibe o mapa\n",
         "fig_mapa.show()"
       ],
-      "id": "801bd2d2",
+      "id": "c16077ef",
       "execution_count": null,
       "outputs": []
     },
@@ -268,7 +268,7 @@
         "\n",
         "O código abaixo demonstra como unir essas duas bases de dados (óbitos e nascidos vivos) para calcular a RMM real de cada estado e, em seguida, visualizar esses dados de forma proporcional."
       ],
-      "id": "d5baaf66"
+      "id": "222e8183"
     },
     {
       "cell_type": "code",
@@ -300,7 +300,7 @@
         "# Exibindo os resultados\n",
         "print(dados_exemplo)"
       ],
-      "id": "b685bb8e",
+      "id": "0b6a32fb",
       "execution_count": null,
       "outputs": []
     },
@@ -312,7 +312,7 @@
         "\n",
         "# Mapa (RMM)"
       ],
-      "id": "74856027"
+      "id": "92060daf"
     },
     {
       "cell_type": "code",
@@ -405,7 +405,7 @@
         "# Exibe o mapa\n",
         "fig_mapa.show()"
       ],
-      "id": "ef63d70d",
+      "id": "2508ca95",
       "execution_count": null,
       "outputs": []
     },
@@ -429,7 +429,7 @@
         "\n",
         "O gráfico abaixo classifica as Unidades da Federação com base nas suas respectivas RMMs. A linha tracejada vermelha representa a meta da ONU, permitindo identificar imediatamente quais estados já alcançaram um padrão internacional de segurança gestacional e quais demandam intervenções urgentes de saúde pública."
       ],
-      "id": "26cf2b61"
+      "id": "7f906cc3"
     },
     {
       "cell_type": "code",
@@ -506,7 +506,7 @@
         "# Exibe o gráfico\n",
         "fig_ods.show()"
       ],
-      "id": "86d77b0b",
+      "id": "f8fc572f",
       "execution_count": null,
       "outputs": []
     }
