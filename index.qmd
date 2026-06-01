@@ -410,11 +410,11 @@ fig_ods = px.bar(
 fig_ods.add_hline(
     y=70, 
     line_dash="dash", 
-    line_color="#ff0000", 
+    line_color="#ffe600", 
     line_width=3,
     annotation_text="Meta ONU (70)", 
     annotation_position="top left",
-    annotation_font=dict(color="#000000", size=12, weight="bold")
+    annotation_font=dict(color="#ffe600", size=12, weight="bold")
 )
 
 # Linha da Média Nacional (Opcional, mas enriquece a análise)
