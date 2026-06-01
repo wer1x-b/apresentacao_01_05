@@ -123,3 +123,131 @@ fig.update_traces(line=dict(width=2.5))
 fig.show()
 
 ```
+
+Fonte: [Sistema de Informações sobre Mortalidade (SIM) - Maio de 2026](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/)
+
+# Mapa
+
+A seguir, apresentamos um mapa interativo que mostra a distribuição geográfica da taxa de mortalidade materna por estado. Este mapa é essencial para identificar regiões com maiores desafios e para orientar políticas públicas direcionadas.
+
+```{python}
+#| message: false
+#| warning: false
+import pandas as pd
+import plotly.express as px
+import json
+import urllib.request
+
+# 1. Carregar a malha geográfica do Brasil (GeoJSON)
+url_geojson = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"
+with urllib.request.urlopen(url_geojson) as response:
+    brasil_estados = json.load(response)
+
+# 2. Importação e Tratamento do Arquivo CSV do DATASUS
+# Usamos decimal e thousands para evitar erros com números como "1.427"
+dados = pd.read_csv("mortalidade_estados.csv.csv", sep=";", decimal=",", thousands=".", encoding="utf-8")
+
+# Filtramos apenas as linhas referentes aos Estados (Unidade da Federação) 
+# e pegamos a faixa etária agregada de "10 a 49" anos (todas as MIFs)
+dados_estados = dados[
+    (dados['abrangencia (nome)'] == 'Unidade da federação') & 
+    (dados['grupoetario (nome)'] == '10 a 49')
+].copy()
+
+# Dicionário para converter o nome do estado na Sigla (que o mapa exige)
+mapa_siglas_nome = {
+    'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 
+    'Ceará': 'CE', 'Distrito Federal': 'DF', 'Espírito Santo': 'ES', 'Goiás': 'GO', 
+    'Maranhão': 'MA', 'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG', 
+    'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE', 'Piauí': 'PI', 
+    'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN', 'Rio Grande do Sul': 'RS', 
+    'Rondônia': 'RO', 'Roraima': 'RR', 'Santa Catarina': 'SC', 'São Paulo': 'SP', 
+    'Sergipe': 'SE', 'Tocantins': 'TO'
+}
+
+# Criamos as colunas limpas para o gráfico
+dados_estados['sigla'] = dados_estados['localidade (nome)'].str.strip().map(mapa_siglas_nome)
+dados_estados['total_obitos'] = dados_estados['Ano'] # Coluna "Ano" contém o total
+dados_estados['estado_nome'] = dados_estados['localidade (nome)'].str.strip()
+
+# Removemos qualquer linha que por ventura não tenha mapeado (ex: totais nacionais)
+dados_mapa = dados_estados.dropna(subset=['sigla'])
+
+# 3. Construção do Mapa Coroplético Interativo
+fig_mapa = px.choropleth(
+    dados_mapa,
+    geojson=brasil_estados,
+    locations='sigla', 
+    featureidkey="properties.sigla",
+    color='total_obitos', 
+    color_continuous_scale="Purples", # Troquei para roxo para combinar com a identidade visual do seu primeiro gráfico!
+    title="<b>Volume Absoluto de Óbitos Maternos por Estado</b>",
+    labels={'total_obitos': 'Número de Óbitos', 'sigla': 'Estado'},
+    hover_name='estado_nome',
+    hover_data={'sigla': False, 'total_obitos': True}
+)
+
+# 4. Refinamento de Layout
+fig_mapa.update_geos(
+    fitbounds="locations", 
+    visible=False
+)
+
+fig_mapa.update_layout(
+    margin={"r":0,"t":50,"l":0,"b":0},
+    coloraxis_colorbar=dict(
+        title="Óbitos",
+        thicknessmode="pixels", thickness=15,
+        lenmode="pixels", len=300,
+        yanchor="middle", y=0.5,
+        xanchor="left", x=0.9
+    ),
+    plot_bgcolor='white',
+    paper_bgcolor='white'
+)
+
+# Exibe o mapa
+fig_mapa.show()
+```
+
+## A Razão de Mortalidade Materna (RMM)
+
+Para compreendermos o real impacto e o risco associado à gravidez e ao puerpério, o uso de números absolutos é insuficiente, visto que regiões mais populosas naturalmente apresentarão mais óbitos. A medida padrão-ouro para essa análise é a **Razão de Mortalidade Materna (RMM)**.
+
+A RMM estima o risco de morte materna para cada 100 mil nascidos vivos e é calculada pela seguinte fórmula:
+
+$$RMM = \left( \frac{\text{Número de Óbitos Maternos}}{\text{Número de Nascidos Vivos}} \right) \times 100.000$$
+
+Para obtermos esse indicador, é necessário realizar o cruzamento entre duas bases de dados do Ministério da Saúde:
+1. **SIM (Sistema de Informações sobre Mortalidade):** De onde extraímos os óbitos maternos.
+2. **SINASC (Sistema de Informações sobre Nascidos Vivos):** De onde extraímos o denominador da nossa equação.
+
+### Calculando a RMM (Exemplo de Implementação)
+
+O código abaixo demonstra como unir essas duas bases de dados (óbitos e nascidos vivos) para calcular a RMM real de cada estado e, em seguida, visualizar esses dados de forma proporcional.
+
+```{python}
+#| message: false
+#| warning: false
+import pandas as pd
+
+# 1. Carregando os dados
+# Assumindo que já temos o CSV de óbitos (dados_obitos) e baixamos o de Nascimentos (dados_nascimentos)
+# dados_obitos = pd.read_csv("mortalidade_estados.csv.csv", sep=";", decimal=",", thousands=".")
+# dados_nascimentos = pd.read_csv("nascidos_vivos_estados.csv", sep=";", decimal=",", thousands=".")
+
+# Exemplo de como a estruturação funcionaria na prática:
+dados_exemplo = pd.DataFrame({
+    'sigla': ['PB', 'SP', 'AM'],
+    'obitos_maternos': [40, 300, 80],
+    'nascidos_vivos': [55000, 550000, 75000]
+})
+
+# 2. O Cálculo da Razão
+dados_exemplo['RMM'] = (dados_exemplo['obitos_maternos'] / dados_exemplo['nascidos_vivos']) * 100000
+
+# Arredondando para uma casa decimal para facilitar a leitura
+dados_exemplo['RMM'] = dados_exemplo['RMM'].round(1)
+
+# Exibindo os resultados
+print(dados_exemplo)
