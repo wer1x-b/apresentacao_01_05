@@ -24,6 +24,111 @@ A mortalidade materna é um indicador crucial da saúde pública, refletindo a q
 Para visualizar os códigos, basta clicar nos botão ` |>Código`
 :::
 
+# Taxa de Mortalidade Materna por Grupos Etários
+
+A análise da taxa de mortalidade materna por grupos etários é fundamental para entender quais faixas etárias estão mais vulneráveis e para direcionar intervenções específicas. A seguir, apresentamos um gráfico interativo que mostra a evolução dos óbitos de mulheres em idade fértil (MIF) ao longo dos meses e anos, segmentados por grupos etários.
+
+```{python}
+import pandas as pd
+import plotly.express as px
+
+# 1. Importação e Limpeza
+# Os parâmetros decimal e thousands garantem a leitura correta de números como "1.012"
+dados = pd.read_csv("grupoetarioXano.csv", sep=";", decimal=",", thousands=".")
+
+# Selecionar as colunas de meses
+meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+dados_filtro = dados[['ano (nome)', 'grupoetario (nome)'] + meses].copy()
+dados_filtro.rename(columns={'ano (nome)': 'ano', 'grupoetario (nome)': 'grupo_etario'}, inplace=True)
+
+# Remover asteriscos dos anos (ex: "2025*")
+dados_filtro['ano'] = dados_filtro['ano'].astype(str).str.replace('*', '', regex=False)
+
+# Remover agrupamentos gerais para não duplicar dados
+dados_filtro = dados_filtro[~dados_filtro['grupo_etario'].isin(['10 a 49', 'Todos'])]
+
+# 2. Transformação (Melt) - Converter colunas de meses em linhas
+dados_long = dados_filtro.melt(
+    id_vars=['ano', 'grupo_etario'], 
+    value_vars=meses, 
+    var_name='mes_nome', 
+    value_name='obitos'
+)
+
+# Mapear os meses para construir uma data válida
+mapa_meses = {
+    'Janeiro': '01', 'Fevereiro': '02', 'Março': '03', 'Abril': '04',
+    'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
+    'Setembro': '09', 'Outubro': '10', 'Novembro': '11', 'Dezembro': '12'
+}
+
+dados_long['mes_num'] = dados_long['mes_nome'].map(mapa_meses)
+
+# Criar eixo temporal contínuo e ordenar
+dados_long['data'] = pd.to_datetime(dados_long['ano'] + '-' + dados_long['mes_num'] + '-01')
+dados_long = dados_long.sort_values(['data', 'grupo_etario'])
+
+# 3. Construção do Gráfico Interativo com Plotly
+fig = px.line(
+    dados_long,
+    x='data',
+    y='obitos',
+    color='grupo_etario',
+    # Adaptando os títulos para o tema do seu trabalho
+    title='<b>Evolução de Óbitos de Mulheres em Idade Fértil (MIF)</b><br><sup>Contexto de Mortalidade Materna</sup>',
+    labels={
+        'data': 'Mês / Ano',
+        'obitos': 'Número de óbitos',
+        'grupo_etario': 'Grupo etário',
+        'mes_nome': 'Mês'
+    },
+    # Adicionando tooltips detalhados
+    hover_data={'data': False, 'mes_nome': True, 'obitos': True}
+)
+
+# 4. Refinamento Estético e Layout
+fig.update_layout(
+    legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=-0.3,
+        xanchor="center",
+        x=0.5,
+        title=""
+    ),
+    # Formatação exata do eixo X para ficar como "MM/YY" (ex: 01/21)
+    xaxis=dict(
+        tickformat="%m/%y",
+        dtick="M2", # Pula de 2 em 2 meses para não poluir o eixo
+        showgrid=True, 
+        gridwidth=1, 
+        gridcolor='LightGray'
+    ),
+    yaxis=dict(
+        showgrid=True, 
+        gridwidth=1, 
+        gridcolor='LightGray'
+    ),
+    hovermode="x unified",
+    plot_bgcolor='white',
+    paper_bgcolor='white'
+)
+
+# Destacar a espessura das linhas para melhor visualização
+fig.update_traces(line=dict(width=2.5))
+
+# Exibe o gráfico no seu arquivo HTML final
+fig.show()
+
+```
+
+::: column-margin
+Fonte: [Sistema de Informações sobre Mortalidade (SIM) - Maio de 2026](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/)
+:::
+
+
 # Mapa (Mortes Maternas por Estado)
 
 A seguir, apresentamos um mapa interativo que mostra a distribuição geográfica do volume de mortalidade materna por estado.
@@ -78,7 +183,7 @@ fig_mapa = px.choropleth(
     featureidkey="properties.sigla",
     color='total_obitos', 
     color_continuous_scale="Purples", # Troquei para roxo para combinar com a identidade visual do seu primeiro gráfico!
-    title="<b>Volume Absoluto de Óbitos Maternos por Estado (2024)</b>",
+    title="<b>Volume Absoluto de Óbitos Maternos por Estado</b>",
     labels={'total_obitos': 'Número de Óbitos', 'sigla': 'Estado'},
     hover_name='estado_nome',
     hover_data={'sigla': False, 'total_obitos': True}
@@ -221,7 +326,7 @@ fig_mapa = px.choropleth(
     featureidkey="properties.sigla",
     color='RMM', 
     color_continuous_scale="Purples", 
-    title="<b>Razão de Mortalidade Materna (RMM) por Estado (2024)</b><br><sup>Óbitos por 100.000 Nascidos Vivos</sup>",
+    title="<b>Razão de Mortalidade Materna (RMM) por Estado</b><br><sup>Óbitos por 100.000 Nascidos Vivos</sup>",
     labels={'RMM': 'RMM', 'sigla': 'Estado'},
     hover_name='estado_limpo',
     hover_data={
@@ -293,7 +398,7 @@ fig_ods = px.bar(
     y='RMM', 
     color='Status_ODS',
     color_discrete_map=paleta_cores,
-    title='<b>Distância para o ODS 3.1: Mortalidade Materna por Estado (2024)</b><br><sup>Comparativo com a meta global da ONU de 70 óbitos/100 mil NV</sup>',
+    title='<b>Distância para o ODS 3.1: Mortalidade Materna por Estado</b><br><sup>Comparativo com a meta global da ONU de 70 óbitos/100 mil NV</sup>',
     labels={'RMM': 'Razão de Mortalidade Materna', 'sigla': 'Estado', 'Status_ODS': 'Situação'},
     hover_name='estado_limpo',
     hover_data={'Status_ODS': False, 'sigla': False}
