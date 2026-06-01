@@ -209,6 +209,7 @@ fig_mapa.update_layout(
 # Exibe o mapa
 fig_mapa.show()
 ```
+Note como são Paulo parece ter um número absoluto de óbitos muito alto, mas isso não necessariamente reflete um risco maior para as mulheres grávidas, já que São Paulo é o estado mais populoso do país. Para entender o risco real, precisamos calcular a Razão de Mortalidade Materna (RMM), que leva em consideração o número de nascidos vivos.
 
 ## A Razão de Mortalidade Materna (RMM)
 
@@ -219,8 +220,10 @@ A RMM estima o risco de morte materna para cada 100 mil nascidos vivos e é calc
 $$RMM = \left( \frac{\text{Número de Óbitos Maternos}}{\text{Número de Nascidos Vivos}} \right) \times 100.000$$
 
 Para obtermos esse indicador, é necessário realizar o cruzamento entre duas bases de dados do Ministério da Saúde:
-1. **SIM (Sistema de Informações sobre Mortalidade):** De onde extraímos os óbitos maternos.
-2. **SINASC (Sistema de Informações sobre Nascidos Vivos):** De onde extraímos o denominador da nossa equação.
+
+- **SIM (Sistema de Informações sobre Mortalidade):** De onde extraímos os óbitos maternos.
+
+- **SINASC (Sistema de Informações sobre Nascidos Vivos):** De onde extraímos o denominador da nossa equação.
 
 ### Calculando a RMM (Exemplo de Implementação)
 
@@ -251,3 +254,5 @@ dados_exemplo['RMM'] = dados_exemplo['RMM'].round(1)
 
 # Exibindo os resultados
 print(dados_exemplo)
+```
+Perceba que, embora São Paulo tenha um número absoluto de óbitos muito maior, a RMM pode ser menor do que a de estados como Amazonas ou Paraíba, que têm menos nascidos vivos, mas um número relativamente alto de óbitos maternos. Essa análise é crucial para direcionar políticas públicas e recursos de forma mais eficaz, focando nas regiões com maior risco real para as mulheres grávidas.
