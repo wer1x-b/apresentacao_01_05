@@ -141,10 +141,9 @@ import plotly.express as px
 import json
 import urllib.request
 
-# 1. Carregar a malha geográfica do Brasil (GeoJSON)
-url_geojson = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"
-with urllib.request.urlopen(url_geojson) as response:
-    brasil_estados = json.load(response)
+# 1. Carregar a malha geográfica do Brasil (Arquivo Local)
+with open("brazil-states.geojson", "r", encoding="utf-8") as f:
+    brasil_estados = json.load(f)
 
 # 2. Importação e Tratamento do Arquivo CSV do DATASUS
 # Usamos decimal e thousands para evitar erros com números como "1.427"
@@ -411,11 +410,11 @@ fig_ods = px.bar(
 fig_ods.add_hline(
     y=70, 
     line_dash="dash", 
-    line_color="#e74c3c", 
+    line_color="#ff0000", 
     line_width=3,
     annotation_text="Meta ONU (70)", 
     annotation_position="top left",
-    annotation_font=dict(color="#e74c3c", size=12, weight="bold")
+    annotation_font=dict(color="#000000", size=12, weight="bold")
 )
 
 # Linha da Média Nacional (Opcional, mas enriquece a análise)
