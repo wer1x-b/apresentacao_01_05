@@ -24,7 +24,7 @@ A mortalidade materna é um indicador crucial da saúde pública, refletindo a q
 Para visualizar os códigos, basta clicar nos botão ` |>Código`
 :::
 
-# Parte 1: Taxa de Mortalidade Materna por Grupos Etários
+# Taxa de Mortalidade Materna por Grupos Etários
 
 A análise da taxa de mortalidade materna por grupos etários é fundamental para entender quais faixas etárias estão mais vulneráveis e para direcionar intervenções específicas. A seguir, apresentamos um gráfico interativo que mostra a evolução dos óbitos de mulheres em idade fértil (MIF) ao longo dos meses e anos, segmentados por grupos etários.
 
@@ -365,3 +365,81 @@ Dados:
 
 - [Sistema de Informações sobre Mortalidade - SIM](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/?s=MSQyMDI1JDEkMSQzNSQ3NiQxJDEkMCQzMDA2JDAkNSQxJDMwMDAwMSQw)
 :::
+
+# O Brasil e a Meta Global (ODS 3.1)
+
+A Organização das Nações Unidas (ONU), por meio dos Objetivos de Desenvolvimento Sustentável (ODS), estabeleceu uma meta global audaciosa para a saúde materno-infantil. O **ODS 3.1** determina que, até 2030, a Razão de Mortalidade Materna global deve ser reduzida para menos de **70 mortes por 100.000 nascidos vivos**.
+
+O gráfico abaixo classifica as Unidades da Federação com base nas suas respectivas RMMs. A linha tracejada vermelha representa a meta da ONU, permitindo identificar imediatamente quais estados já alcançaram um padrão internacional de segurança gestacional e quais demandam intervenções urgentes de saúde pública.
+
+```{python}
+#| message: false
+#| warning: false
+import plotly.express as px
+import plotly.graph_objects as go
+
+# 1. Preparação dos Dados
+# Utilizamos o df_final que já contém a RMM calculada na Parte 3
+# Ordenamos do menor (melhor cenário) para o maior (pior cenário)
+df_ods = df_final.sort_values('RMM').copy()
+
+# Calculamos a média nacional para servir de parâmetro extra
+obitos_totais_br = df_ods['total_obitos'].sum()
+nascimentos_totais_br = df_ods['total_nascimentos'].sum()
+rmm_brasil = (obitos_totais_br / nascimentos_totais_br) * 100000
+
+# Criamos uma coluna de cor condicional: 
+# Verde para quem atingiu a meta (<= 70), Roxo para quem está acima (> 70)
+df_ods['Status_ODS'] = df_ods['RMM'].apply(lambda x: 'Atingiu a Meta' if x <= 70 else 'Acima da Meta')
+paleta_cores = {'Atingiu a Meta': '#2ecc71', 'Acima da Meta': '#9b59b6'}
+
+# 2. Construção do Gráfico de Barras
+fig_ods = px.bar(
+    df_ods, 
+    x='sigla', 
+    y='RMM', 
+    color='Status_ODS',
+    color_discrete_map=paleta_cores,
+    title='<b>Distância para o ODS 3.1: Mortalidade Materna por Estado</b><br><sup>Comparativo com a meta global da ONU de 70 óbitos/100 mil NV</sup>',
+    labels={'RMM': 'Razão de Mortalidade Materna', 'sigla': 'Estado', 'Status_ODS': 'Situação'},
+    hover_name='estado_limpo',
+    hover_data={'Status_ODS': False, 'sigla': False}
+)
+
+# 3. Adicionando as Linhas de Referência (A Mágica Visual)
+# Linha da Meta da ONU
+fig_ods.add_hline(
+    y=70, 
+    line_dash="dash", 
+    line_color="#e74c3c", 
+    line_width=3,
+    annotation_text="Meta ONU (70)", 
+    annotation_position="top left",
+    annotation_font=dict(color="#e74c3c", size=12, weight="bold")
+)
+
+# Linha da Média Nacional (Opcional, mas enriquece a análise)
+fig_ods.add_hline(
+    y=rmm_brasil, 
+    line_dash="dot", 
+    line_color="#34495e", 
+    line_width=2,
+    annotation_text=f"Média Brasil ({rmm_brasil:.1f})", 
+    annotation_position="bottom right",
+    annotation_font=dict(color="#34495e", size=11)
+)
+
+# 4. Refinamento de Layout
+fig_ods.update_layout(
+    xaxis_title="Unidades da Federação",
+    yaxis_title="RMM",
+    legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5, title=""),
+    plot_bgcolor='white', 
+    paper_bgcolor='white',
+    hovermode="x unified"
+)
+fig_ods.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
+
+# Exibe o gráfico
+fig_ods.show()
+```

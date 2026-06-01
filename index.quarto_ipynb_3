@@ -34,7 +34,7 @@
         "\n",
         "A análise da taxa de mortalidade materna por grupos etários é fundamental para entender quais faixas etárias estão mais vulneráveis e para direcionar intervenções específicas. A seguir, apresentamos um gráfico interativo que mostra a evolução dos óbitos de mulheres em idade fértil (MIF) ao longo dos meses e anos, segmentados por grupos etários."
       ],
-      "id": "531ca9cd"
+      "id": "f3611ba1"
     },
     {
       "cell_type": "code",
@@ -133,7 +133,7 @@
         "# Exibe o gráfico no seu arquivo HTML final\n",
         "fig.show()"
       ],
-      "id": "5171f7a2",
+      "id": "b793cd2f",
       "execution_count": null,
       "outputs": []
     },
@@ -150,7 +150,7 @@
         "\n",
         "A seguir, apresentamos um mapa interativo que mostra a distribuição geográfica do volume de mortalidade materna por estado."
       ],
-      "id": "a254bbad"
+      "id": "c8eb4e98"
     },
     {
       "cell_type": "code",
@@ -235,7 +235,7 @@
         "# Exibe o mapa\n",
         "fig_mapa.show()"
       ],
-      "id": "97913264",
+      "id": "af44c1ce",
       "execution_count": null,
       "outputs": []
     },
@@ -269,7 +269,7 @@
         "\n",
         "O código abaixo demonstra como unir essas duas bases de dados (óbitos e nascidos vivos) para calcular a RMM real de cada estado e, em seguida, visualizar esses dados de forma proporcional."
       ],
-      "id": "5be83979"
+      "id": "e10d8ed0"
     },
     {
       "cell_type": "code",
@@ -301,7 +301,7 @@
         "# Exibindo os resultados\n",
         "print(dados_exemplo)"
       ],
-      "id": "f330300f",
+      "id": "3d0e0b66",
       "execution_count": null,
       "outputs": []
     },
@@ -313,7 +313,7 @@
         "\n",
         "# Mapa (RMM)"
       ],
-      "id": "4573d2e0"
+      "id": "9ef8d2a4"
     },
     {
       "cell_type": "code",
@@ -406,7 +406,7 @@
         "# Exibe o mapa\n",
         "fig_mapa.show()"
       ],
-      "id": "55670519",
+      "id": "3bcdddef",
       "execution_count": null,
       "outputs": []
     },
@@ -422,9 +422,94 @@
         "- [Sistema de Informações sobre Nascidos Vivos - SINASC](http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinasc/cnv/nvuf.def)\n",
         "\n",
         "- [Sistema de Informações sobre Mortalidade - SIM](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/?s=MSQyMDI1JDEkMSQzNSQ3NiQxJDEkMCQzMDA2JDAkNSQxJDMwMDAwMSQw)\n",
-        ":::"
+        ":::\n",
+        "\n",
+        "## Parte 4: O Brasil e a Meta Global (ODS 3.1)\n",
+        "\n",
+        "A Organização das Nações Unidas (ONU), por meio dos Objetivos de Desenvolvimento Sustentável (ODS), estabeleceu uma meta global audaciosa para a saúde materno-infantil. O **ODS 3.1** determina que, até 2030, a Razão de Mortalidade Materna global deve ser reduzida para menos de **70 mortes por 100.000 nascidos vivos**.\n",
+        "\n",
+        "O gráfico abaixo classifica as Unidades da Federação com base nas suas respectivas RMMs. A linha tracejada vermelha representa a meta da ONU, permitindo identificar imediatamente quais estados já alcançaram um padrão internacional de segurança gestacional e quais demandam intervenções urgentes de saúde pública."
       ],
-      "id": "f4a78dc7"
+      "id": "dad0d056"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "message": false
+      },
+      "source": [
+        "#| warning: false\n",
+        "import plotly.express as px\n",
+        "import plotly.graph_objects as go\n",
+        "\n",
+        "# 1. Preparação dos Dados\n",
+        "# Utilizamos o df_final que já contém a RMM calculada na Parte 3\n",
+        "# Ordenamos do menor (melhor cenário) para o maior (pior cenário)\n",
+        "df_ods = df_final.sort_values('RMM').copy()\n",
+        "\n",
+        "# Calculamos a média nacional para servir de parâmetro extra\n",
+        "obitos_totais_br = df_ods['total_obitos'].sum()\n",
+        "nascimentos_totais_br = df_ods['total_nascimentos'].sum()\n",
+        "rmm_brasil = (obitos_totais_br / nascimentos_totais_br) * 100000\n",
+        "\n",
+        "# Criamos uma coluna de cor condicional: \n",
+        "# Verde para quem atingiu a meta (<= 70), Roxo para quem está acima (> 70)\n",
+        "df_ods['Status_ODS'] = df_ods['RMM'].apply(lambda x: 'Atingiu a Meta' if x <= 70 else 'Acima da Meta')\n",
+        "paleta_cores = {'Atingiu a Meta': '#2ecc71', 'Acima da Meta': '#9b59b6'}\n",
+        "\n",
+        "# 2. Construção do Gráfico de Barras\n",
+        "fig_ods = px.bar(\n",
+        "    df_ods, \n",
+        "    x='sigla', \n",
+        "    y='RMM', \n",
+        "    color='Status_ODS',\n",
+        "    color_discrete_map=paleta_cores,\n",
+        "    title='<b>Distância para o ODS 3.1: Mortalidade Materna por Estado</b><br><sup>Comparativo com a meta global da ONU de 70 óbitos/100 mil NV</sup>',\n",
+        "    labels={'RMM': 'Razão de Mortalidade Materna', 'sigla': 'Estado', 'Status_ODS': 'Situação'},\n",
+        "    hover_name='estado_limpo',\n",
+        "    hover_data={'Status_ODS': False, 'sigla': False}\n",
+        ")\n",
+        "\n",
+        "# 3. Adicionando as Linhas de Referência (A Mágica Visual)\n",
+        "# Linha da Meta da ONU\n",
+        "fig_ods.add_hline(\n",
+        "    y=70, \n",
+        "    line_dash=\"dash\", \n",
+        "    line_color=\"#e74c3c\", \n",
+        "    line_width=3,\n",
+        "    annotation_text=\"Meta ONU (70)\", \n",
+        "    annotation_position=\"top left\",\n",
+        "    annotation_font=dict(color=\"#e74c3c\", size=12, weight=\"bold\")\n",
+        ")\n",
+        "\n",
+        "# Linha da Média Nacional (Opcional, mas enriquece a análise)\n",
+        "fig_ods.add_hline(\n",
+        "    y=rmm_brasil, \n",
+        "    line_dash=\"dot\", \n",
+        "    line_color=\"#34495e\", \n",
+        "    line_width=2,\n",
+        "    annotation_text=f\"Média Brasil ({rmm_brasil:.1f})\", \n",
+        "    annotation_position=\"bottom right\",\n",
+        "    annotation_font=dict(color=\"#34495e\", size=11)\n",
+        ")\n",
+        "\n",
+        "# 4. Refinamento de Layout\n",
+        "fig_ods.update_layout(\n",
+        "    xaxis_title=\"Unidades da Federação\",\n",
+        "    yaxis_title=\"RMM\",\n",
+        "    legend=dict(orientation=\"h\", yanchor=\"bottom\", y=-0.3, xanchor=\"center\", x=0.5, title=\"\"),\n",
+        "    plot_bgcolor='white', \n",
+        "    paper_bgcolor='white',\n",
+        "    hovermode=\"x unified\"\n",
+        ")\n",
+        "fig_ods.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')\n",
+        "\n",
+        "# Exibe o gráfico\n",
+        "fig_ods.show()"
+      ],
+      "id": "545210db",
+      "execution_count": null,
+      "outputs": []
     }
   ],
   "metadata": {
