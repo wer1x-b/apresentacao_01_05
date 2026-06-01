@@ -18,7 +18,7 @@ citation-location: margin
 
 # introdução
 
-A mortalidade materna é um indicador crucial da saúde pública, refletindo a qualidade dos serviços de saúde, o acesso a cuidados pré-natais e as condições socioeconômicas das mulheres. A análise da taxa de mortalidade materna ao longo do tempo e por grupos etários é essencial para identificar padrões, avaliar o impacto de intervenções e orientar políticas públicas eficazes. Neste trabalho, exploraremos a evolução da mortalidade materna em mulheres em idade fértil (MIF) utilizando dados recentes, com foco na visualização gráfica para facilitar a compreensão das tendências e variações ao longo dos anos.
+A mortalidade materna é um indicador crucial da saúde pública, refletindo a qualidade dos serviços de saúde, o acesso a cuidados pré-natais e as condições socioeconômicas das mulheres. A análise da taxa de mortalidade materna ao longo do tempo e por grupos etários é essencial para identificar padrões, avaliar o impacto de intervenções e orientar políticas públicas eficazes. Porém quando comparamos os dados brutos, acomparação pode ser injusta, já que estados mais populosos naturalmente terão mais óbitos. Para isso, utilizamos a Razão de Mortalidade Materna (RMM), que leva em consideração o número de nascidos vivos, oferecendo uma visão mais precisa do risco real para as mulheres grávidas.
 
 ::: callout-tip
 Para visualizar os códigos, basta clicar nos botão ` |>Código`
@@ -124,11 +124,14 @@ fig.show()
 
 ```
 
+::: column-margin
 Fonte: [Sistema de Informações sobre Mortalidade (SIM) - Maio de 2026](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/)
+:::
 
-# Mapa
 
-A seguir, apresentamos um mapa interativo que mostra a distribuição geográfica da taxa de mortalidade materna por estado. Este mapa é essencial para identificar regiões com maiores desafios e para orientar políticas públicas direcionadas.
+# Mapa (Mortes Maternas por Estado)
+
+A seguir, apresentamos um mapa interativo que mostra a distribuição geográfica do volume de mortalidade materna por estado.
 
 ```{python}
 #| message: false
@@ -209,11 +212,18 @@ fig_mapa.update_layout(
 # Exibe o mapa
 fig_mapa.show()
 ```
+
+::: column-margin
+Dados:
+
+- [Sistema de Informações sobre Mortalidade - SIM](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/?s=MSQyMDI1JDEkMSQzNSQ3NiQxJDEkMCQzMDA2JDAkNSQxJDMwMDAwMSQw)
+:::
+
 Note como são Paulo parece ter um número absoluto de óbitos muito alto, mas isso não necessariamente reflete um risco maior para as mulheres grávidas, já que São Paulo é o estado mais populoso do país. Para entender o risco real, precisamos calcular a Razão de Mortalidade Materna (RMM), que leva em consideração o número de nascidos vivos.
 
-## A Razão de Mortalidade Materna (RMM)
+# A Razão de Mortalidade Materna (RMM)
 
-Para compreendermos o real impacto e o risco associado à gravidez e ao puerpério, o uso de números absolutos é insuficiente, visto que regiões mais populosas naturalmente apresentarão mais óbitos. A medida padrão-ouro para essa análise é a **Razão de Mortalidade Materna (RMM)**.
+Para compreendermos o real impacto e o risco associado à gravidez e ao puerpério, o uso de números absolutos é insuficiente, visto que regiões mais populosas naturalmente apresentarão mais óbitos. A medida padrão para essa análise é a **Razão de Mortalidade Materna (RMM)**.
 
 A RMM estima o risco de morte materna para cada 100 mil nascidos vivos e é calculada pela seguinte fórmula:
 
@@ -225,7 +235,7 @@ Para obtermos esse indicador, é necessário realizar o cruzamento entre duas ba
 
 - **SINASC (Sistema de Informações sobre Nascidos Vivos):** De onde extraímos o denominador da nossa equação.
 
-### Calculando a RMM (Exemplo de Implementação)
+# Calculando a RMM (Valores apenas de exemplo)
 
 O código abaixo demonstra como unir essas duas bases de dados (óbitos e nascidos vivos) para calcular a RMM real de cada estado e, em seguida, visualizar esses dados de forma proporcional.
 
@@ -256,3 +266,102 @@ dados_exemplo['RMM'] = dados_exemplo['RMM'].round(1)
 print(dados_exemplo)
 ```
 Perceba que, embora São Paulo tenha um número absoluto de óbitos muito maior, a RMM pode ser menor do que a de estados como Amazonas ou Paraíba, que têm menos nascidos vivos, mas um número relativamente alto de óbitos maternos. Essa análise é crucial para direcionar políticas públicas e recursos de forma mais eficaz, focando nas regiões com maior risco real para as mulheres grávidas.
+
+# Mapa (RMM)
+
+```{python}
+#| message: false
+#| warning: false
+import pandas as pd
+import plotly.express as px
+import json
+import urllib.request
+
+# 1. Carregar a malha geográfica do Brasil
+url_geojson = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"
+with urllib.request.urlopen(url_geojson) as response:
+    brasil_estados = json.load(response)
+
+# 2. Leitura dos Óbitos Maternos (SIM)
+df_obitos = pd.read_csv("mortalidade_estados.csv.csv", sep=";", decimal=",", thousands=".", encoding="utf-8")
+df_obitos_estados = df_obitos[
+    (df_obitos['abrangencia (nome)'] == 'Unidade da federação') & 
+    (df_obitos['grupoetario (nome)'] == '10 a 49')
+].copy()
+
+# Padronizando a coluna para o cruzamento
+df_obitos_estados['estado_limpo'] = df_obitos_estados['localidade (nome)'].str.strip()
+df_obitos_estados['total_obitos'] = df_obitos_estados['Ano']
+
+# 3. Leitura dos Nascidos Vivos (SINASC)
+# Pula as 3 primeiras linhas de cabeçalho sujo do TabNet
+df_nasc = pd.read_csv('nascidos_vivos_estados.csv.csv', sep=';', skiprows=3, encoding='latin-1')
+df_nasc = df_nasc.dropna(subset=['Nascim_p/resid.mãe']).copy()
+
+# Remove os pontos e espaços que o TabNet coloca antes do nome (ex: ".. Rondônia")
+df_nasc['estado_limpo'] = df_nasc['Região/Unidade da Federação'].str.replace(r'^\.\.\s*', '', regex=True).str.strip()
+df_nasc['total_nascimentos'] = df_nasc['Nascim_p/resid.mãe']
+
+# 4. Cruzamento dos Dados (Merge)
+df_final = pd.merge(df_obitos_estados, df_nasc, on='estado_limpo')
+
+mapa_siglas_nome = {
+    'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 
+    'Ceará': 'CE', 'Distrito Federal': 'DF', 'Espírito Santo': 'ES', 'Goiás': 'GO', 
+    'Maranhão': 'MA', 'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG', 
+    'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE', 'Piauí': 'PI', 
+    'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN', 'Rio Grande do Sul': 'RS', 
+    'Rondônia': 'RO', 'Roraima': 'RR', 'Santa Catarina': 'SC', 'São Paulo': 'SP', 
+    'Sergipe': 'SE', 'Tocantins': 'TO'
+}
+df_final['sigla'] = df_final['estado_limpo'].map(mapa_siglas_nome)
+
+# 5. O CÁLCULO DA RMM (A Mágica acontece aqui)
+df_final['RMM'] = (df_final['total_obitos'] / df_final['total_nascimentos']) * 100000
+df_final['RMM'] = df_final['RMM'].round(1)
+
+# 6. Construção do Mapa Coroplético Interativo
+fig_mapa = px.choropleth(
+    df_final.dropna(subset=['sigla']),
+    geojson=brasil_estados,
+    locations='sigla', 
+    featureidkey="properties.sigla",
+    color='RMM', 
+    color_continuous_scale="Purples", 
+    title="<b>Razão de Mortalidade Materna (RMM) por Estado</b><br><sup>Óbitos por 100.000 Nascidos Vivos</sup>",
+    labels={'RMM': 'RMM', 'sigla': 'Estado'},
+    hover_name='estado_limpo',
+    hover_data={
+        'sigla': False, 
+        'RMM': True,
+        'total_obitos': True,
+        'total_nascimentos': True
+    }
+)
+
+# 7. Refinamento de Layout
+fig_mapa.update_geos(fitbounds="locations", visible=False)
+fig_mapa.update_layout(
+    margin={"r":0,"t":70,"l":0,"b":0},
+    coloraxis_colorbar=dict(
+        title="RMM",
+        thicknessmode="pixels", thickness=15,
+        lenmode="pixels", len=300,
+        yanchor="middle", y=0.5,
+        xanchor="left", x=0.9
+    ),
+    plot_bgcolor='white', paper_bgcolor='white'
+)
+
+# Exibe o mapa
+fig_mapa.show()
+```
+Note como o mapa agora reflete o risco real para as mulheres grávidas, destacando estados que, embora possam ter um número absoluto de óbitos menor, apresentam uma RMM mais alta, indicando um risco maior de morte materna. Daí a importância de utilizar a RMM para análises mais justas e direcionadas, especialmente em um país com tanta diversidade regional como o Brasil.
+
+::: column-margin
+Dados:
+
+- [Sistema de Informações sobre Nascidos Vivos - SINASC](http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinasc/cnv/nvuf.def)
+
+- [Sistema de Informações sobre Mortalidade - SIM](https://svs.aids.gov.br/daent/centrais-de-conteudos/paineis-de-monitoramento/mortalidade/materna/?s=MSQyMDI1JDEkMSQzNSQ3NiQxJDEkMCQzMDA2JDAkNSQxJDMwMDAwMSQw)
+:::

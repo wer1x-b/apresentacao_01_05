@@ -1,0 +1,50 @@
+ Nascidos vivos - Brasil
+Nascim p/resid.mãe por Região/Unidade da Federação
+Período:2024
+"Região/Unidade da Federação";"Nascim_p/resid.mãe"
+"Região Norte";265670
+".. Rondônia";21716
+".. Acre";13101
+".. Amazonas";65950
+".. Roraima";12090
+".. Pará";118566
+".. Amapá";12327
+".. Tocantins";21920
+"Região Nordeste";667121
+".. Maranhão";92173
+".. Piauí";39697
+".. Ceará";105453
+".. Rio Grande do Norte";36612
+".. Paraíba";49376
+".. Pernambuco";110827
+".. Alagoas";45436
+".. Sergipe";27545
+".. Bahia";160002
+"Região Sudeste";904365
+".. Minas Gerais";219819
+".. Espírito Santo";49937
+".. Rio de Janeiro";163722
+".. São Paulo";470887
+"Região Sul";336802
+".. Paraná";131027
+".. Santa Catarina";93787
+".. Rio Grande do Sul";111988
+"Região Centro-Oeste";215367
+".. Mato Grosso do Sul";37908
+".. Mato Grosso";55310
+".. Goiás";88867
+".. Distrito Federal";33282
+"Total";2389325
+ Fonte: MS/SVSA/CGIAE - Sistema de Informações sobre Nascidos Vivos - SINASC
+ Notas:
+ 
+ Dados finais disponíveis até 2024 e atualizados em 02/12/2025.
+ Em 2011, houve uma mudança no conteúdo da Declaração de Nascidos Vivos, com maior detalhamento das informações coletadas. Para este ano, foram
+ utilizados simultaneamente os dois formulários. Para mais detalhes sobre as mudanças ocorridas e os seus efeitos, veja o documento
+ "Consolidação do Sistema de Informações sobre Nascidos Vivos - 2011".
+ 
+ * A categorização da "Adequação quantitativa de pré-natal" mostrada na variável "Adeq quant pré-natal" considera o início do
+ pré-natal no primeiro trimestre e um mínimo de seis consultas de pré-natal –, sendo gravada em campo chamado Kotelchuck no
+ arquivo disponível para download, calculado a partir dos campos “33 – Número de consultas pré-natal” (Mesprenat) e “34 – Mês de gestação em que iniciou o pré-natal” (Consprenat).
+ Maiores informações no documento "Saúde Brasil 2017: uma análise da situação de saúde e os desafios para o alcance dos Objetivos de Desenvolvi
+ 
